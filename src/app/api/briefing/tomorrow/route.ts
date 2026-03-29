@@ -1,6 +1,12 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { GoogleAPIClient } from "@/lib/google-api";
+import {
+  addCalendarDaysYmd,
+  getEventStartSeoulYmd,
+  getSeoulYmd,
+  seoulDayRangeIso,
+} from "@/lib/korea-time";
 
 export async function GET() {
   try {
@@ -23,32 +29,29 @@ export async function GET() {
       expiresAt: session.expiresAt,
     });
 
-    // 내일 일정 가져오기 (한국 시간 기준)
-    const now = new Date();
-    const koreaToday = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-    
-    const tomorrow = new Date(koreaToday);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const dayAfterTomorrow = new Date(tomorrow);
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+    const todaySeoul = getSeoulYmd();
+    const tomorrowSeoul = addCalendarDaysYmd(todaySeoul, 1);
+    const { timeMin, timeMax } = seoulDayRangeIso(tomorrowSeoul);
 
-    console.log(`[Tomorrow] Fetching events: ${tomorrow.toISOString()} ~ ${dayAfterTomorrow.toISOString()}`);
-
-    const events = await googleClient.getCalendarEvents(
-      tomorrow.toISOString(),
-      dayAfterTomorrow.toISOString()
+    console.log(
+      `[Tomorrow] Seoul today=${todaySeoul} tomorrow=${tomorrowSeoul} range ${timeMin} .. ${timeMax}`
     );
 
-    if (!events || events.length === 0) {
+    const rawEvents = await googleClient.getCalendarEvents(timeMin, timeMax);
+
+    const events = (rawEvents || []).filter((ev: { start?: { dateTime?: string; date?: string } }) => {
+      const ymd = getEventStartSeoulYmd(ev);
+      return ymd === tomorrowSeoul;
+    });
+
+    if (events.length === 0) {
       return NextResponse.json({
         message: "내일 일정이 없습니다",
         events: [],
+        dateLabel: tomorrowSeoul,
       });
     }
 
-    // 주요 이벤트만 필터링 (상위 3개)
     const keyEvents = events.slice(0, 3).map((event: any) => ({
       summary: event.summary || "제목 없음",
       start: event.start?.dateTime || event.start?.date || "",
@@ -56,11 +59,14 @@ export async function GET() {
       attendees: event.attendees?.length || 0,
     }));
 
-    console.log(`[Tomorrow] Found ${events.length} events, returning top ${keyEvents.length}`);
+    console.log(
+      `[Tomorrow] API returned ${rawEvents?.length ?? 0}, after Seoul-day filter: ${events.length}`
+    );
 
     return NextResponse.json({
       events: keyEvents,
       totalCount: events.length,
+      dateLabel: tomorrowSeoul,
     });
   } catch (error) {
     console.error("Tomorrow preview error:", error);

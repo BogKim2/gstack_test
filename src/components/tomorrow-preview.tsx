@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown, Calendar, Users, Loader2 } from "lucide-react";
 
 interface TomorrowEvent {
@@ -18,6 +18,7 @@ export function TomorrowPreview() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [dateLabel, setDateLabel] = useState<string | null>(null);
 
   const loadTomorrowEvents = async () => {
     if (loaded) return;
@@ -30,6 +31,7 @@ export function TomorrowPreview() {
       if (response.ok) {
         setEvents(data.events || []);
         setTotalCount(data.totalCount || 0);
+        setDateLabel(data.dateLabel ?? null);
         setLoaded(true);
       }
     } catch (error) {
@@ -63,9 +65,22 @@ export function TomorrowPreview() {
       <Card className="border-chart-5/30 bg-gradient-to-br from-chart-5/10 to-chart-4/10">
         <CollapsibleTrigger className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-chart-5" />
-              <CardTitle className="text-base">내일 일정 미리보기</CardTitle>
+            <div className="flex flex-col items-start gap-0.5 text-left">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-chart-5" />
+                <CardTitle className="text-base">내일 일정 미리보기</CardTitle>
+              </div>
+              {dateLabel && (
+                <CardDescription className="pl-7 text-xs">
+                  서울 기준{" "}
+                  {new Date(`${dateLabel}T12:00:00+09:00`).toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    weekday: "long",
+                  })}
+                </CardDescription>
+              )}
             </div>
             <ChevronDown
               className={`h-5 w-5 transition-transform ${
@@ -82,7 +97,9 @@ export function TomorrowPreview() {
               </div>
             ) : events.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">
-                내일 일정이 없습니다
+                {dateLabel
+                  ? "이 날짜에는 캘린더 일정이 없습니다"
+                  : "내일 일정이 없습니다"}
               </p>
             ) : (
               <div className="space-y-3">

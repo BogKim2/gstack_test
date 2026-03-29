@@ -5,6 +5,12 @@ import { createLLMProvider } from "@/lib/llm";
 import { db } from "@/db";
 import { briefings, userSettings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import {
+  addCalendarDaysYmd,
+  getEventStartSeoulYmd,
+  getSeoulYmd,
+  seoulDayRangeIso,
+} from "@/lib/korea-time";
 
 // Busy Score 계산 함수
 function calculateBusyScore(events: any[]): number {
@@ -85,15 +91,13 @@ export async function POST() {
       expiresAt: session.expiresAt,
     });
 
-    // 오늘 일정 가져오기
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const events = await googleClient.getCalendarEvents(
-      today.toISOString(),
-      tomorrow.toISOString()
+    // 오늘 일정 (Asia/Seoul 달력 기준)
+    const todaySeoul = getSeoulYmd();
+    const { timeMin, timeMax } = seoulDayRangeIso(todaySeoul);
+    const rawEvents = await googleClient.getCalendarEvents(timeMin, timeMax);
+    const events = (rawEvents || []).filter(
+      (ev: { start?: { dateTime?: string; date?: string } }) =>
+        getEventStartSeoulYmd(ev) === todaySeoul
     );
 
     if (!events || events.length === 0) {
@@ -175,10 +179,7 @@ export async function POST() {
     console.log(`[Score] Busy score: ${busyScore}`);
 
     // 어제 브리핑 가져오기 (델타 계산용)
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayKorea = new Date(yesterday.getTime() + (9 * 60 * 60 * 1000));
-    const yesterdayStr = yesterdayKorea.toISOString().split("T")[0];
+    const yesterdayStr = addCalendarDaysYmd(todaySeoul, -1);
     
     const yesterdayBriefing = await db
       .select()
@@ -209,9 +210,8 @@ export async function POST() {
       console.log(`[DELTA] Busy score: ${yesterdayBriefing[0].busyScore} -> ${busyScore} (${delta.busyScoreChange >= 0 ? '+' : ''}${delta.busyScoreChange})`);
     }
 
-    // 데이터베이스에 저장 (한국 시간 기준 날짜)
-    const koreaTime = new Date(today.getTime() + (9 * 60 * 60 * 1000));
-    const dateStr = koreaTime.toISOString().split("T")[0];
+    // 데이터베이스에 저장 (Seoul 달력 날짜)
+    const dateStr = todaySeoul;
     const now = Date.now();
     
     console.log(`[DB] Saving briefing for date: ${dateStr}`);
