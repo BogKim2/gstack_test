@@ -8,6 +8,7 @@ import Link from "next/link";
 import { BriefingCard } from "@/components/briefing-card";
 import { TestEventsButton } from "@/components/test-events-button";
 import { TomorrowPreview } from "@/components/tomorrow-preview";
+import { WeekTimeline } from "@/components/week-timeline";
 import { db } from "@/db";
 import { briefings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -106,17 +107,7 @@ export default async function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="week" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>주간 일정</CardTitle>
-                <CardDescription>이번 주 일정 요약</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center py-12">
-                  <p className="text-muted-foreground">주간 뷰는 곧 제공됩니다</p>
-                </div>
-              </CardContent>
-            </Card>
+            <WeekTimeline />
           </TabsContent>
         </Tabs>
       </main>
