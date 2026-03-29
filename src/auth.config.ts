@@ -16,11 +16,14 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+      }
+      if (user) {
+        token.id = user.id;
       }
       return token;
     },
@@ -28,6 +31,9 @@ export const authConfig = {
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
       session.expiresAt = token.expiresAt as number;
+      if (token.id) {
+        session.user.id = token.id as string;
+      }
       return session;
     },
   },
