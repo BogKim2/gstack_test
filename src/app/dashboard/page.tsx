@@ -18,8 +18,11 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  // 오늘 브리핑 가져오기
-  const today = new Date().toISOString().split("T")[0];
+  // 오늘 브리핑 가져오기 (한국 시간 기준)
+  const now = new Date();
+  const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  const today = koreaTime.toISOString().split("T")[0];
+  
   const todayBriefing = await db
     .select()
     .from(briefings)
@@ -42,6 +45,9 @@ export default async function DashboardPage() {
           : [],
         busyScore: todayBriefing[0].busyScore || 0,
         createdAt: todayBriefing[0].createdAt || Date.now(),
+        llmProvider: todayBriefing[0].llmProvider || undefined,
+        llmModel: todayBriefing[0].llmModel || undefined,
+        llmEndpoint: todayBriefing[0].llmEndpoint || undefined,
       }
     : null;
 

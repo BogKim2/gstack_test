@@ -93,6 +93,9 @@ export const briefings = sqliteTable("briefing", {
   summary: text("summary").notNull(),
   actionItems: text("actionItems"), // JSON array
   busyScore: integer("busyScore"), // 0-100
+  llmProvider: text("llmProvider"), // "openai" | "lmstudio"
+  llmModel: text("llmModel"), // 사용된 모델명
+  llmEndpoint: text("llmEndpoint"), // LM Studio 엔드포인트
   createdAt: integer("createdAt").notNull(),
 });
 

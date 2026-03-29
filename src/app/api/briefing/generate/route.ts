@@ -79,15 +79,28 @@ export async function POST() {
     );
 
     // 브리핑 생성
+    console.log(`[LLM] Provider: ${userConfig.llmProvider}`);
+    if (userConfig.llmProvider === "lmstudio") {
+      console.log(`[LLM] Endpoint: ${userConfig.lmStudioEndpoint}`);
+      console.log(`[LLM] Model: ${userConfig.lmStudioModel}`);
+    }
+    console.log(`[LLM] Generating briefing for ${events.length} events...`);
+    
     const summary = await llmProvider.generateBriefing(calendarEvents);
+    console.log(`[LLM] Summary generated (${summary.length} chars)`);
+    
     const actionItems = await llmProvider.extractActionItems(summary);
+    console.log(`[LLM] Action items extracted: ${actionItems.length} items`);
 
     // Busy Score 계산 (간단한 로직: 이벤트 수 기반)
     const busyScore = Math.min(100, events.length * 20);
 
-    // 데이터베이스에 저장
-    const dateStr = today.toISOString().split("T")[0];
+    // 데이터베이스에 저장 (한국 시간 기준 날짜)
+    const koreaTime = new Date(today.getTime() + (9 * 60 * 60 * 1000));
+    const dateStr = koreaTime.toISOString().split("T")[0];
     const now = Date.now();
+    
+    console.log(`[DB] Saving briefing for date: ${dateStr}`);
     
     await db.insert(briefings).values({
       userId: session.user.id,
@@ -95,6 +108,9 @@ export async function POST() {
       summary,
       actionItems: JSON.stringify(actionItems),
       busyScore,
+      llmProvider: userConfig.llmProvider,
+      llmModel: userConfig.llmProvider === "lmstudio" ? userConfig.lmStudioModel : "gpt-4o-mini",
+      llmEndpoint: userConfig.llmProvider === "lmstudio" ? userConfig.lmStudioEndpoint : undefined,
       createdAt: now,
     });
 
@@ -106,6 +122,8 @@ export async function POST() {
         actionItems,
         busyScore,
         eventCount: events.length,
+        llmProvider: userConfig.llmProvider,
+        llmModel: userConfig.llmProvider === "lmstudio" ? userConfig.lmStudioModel : "gpt-4o-mini",
       },
     });
   } catch (error) {

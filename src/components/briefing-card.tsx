@@ -13,6 +13,9 @@ interface Briefing {
   actionItems: string[];
   busyScore: number;
   createdAt: number;
+  llmProvider?: string;
+  llmModel?: string;
+  llmEndpoint?: string;
 }
 
 interface BriefingCardProps {
@@ -51,12 +54,13 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
   };
 
   if (!briefing) {
+    const koreaTime = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
     return (
       <Card>
         <CardHeader>
           <CardTitle>오늘의 브리핑</CardTitle>
           <CardDescription>
-            {new Date().toLocaleDateString("ko-KR", {
+            {koreaTime.toLocaleDateString("ko-KR", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -107,7 +111,7 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
           <div>
             <CardTitle>오늘의 브리핑</CardTitle>
             <CardDescription>
-              {new Date(briefing.date).toLocaleDateString("ko-KR", {
+              {new Date(briefing.date + "T00:00:00+09:00").toLocaleDateString("ko-KR", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -144,6 +148,20 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {briefing.llmProvider && (
+          <div className="rounded-lg border bg-muted/50 p-3 text-xs">
+            <div className="font-semibold mb-1">LLM 호출 정보</div>
+            <div className="space-y-0.5 text-muted-foreground">
+              <div>프로바이더: {briefing.llmProvider === "lmstudio" ? "LM Studio (로컬)" : "OpenAI"}</div>
+              <div>모델: {briefing.llmModel || "알 수 없음"}</div>
+              {briefing.llmEndpoint && (
+                <div>엔드포인트: {briefing.llmEndpoint}</div>
+              )}
+              <div>생성 시각: {new Date(briefing.createdAt).toLocaleString("ko-KR")}</div>
+            </div>
           </div>
         )}
 
