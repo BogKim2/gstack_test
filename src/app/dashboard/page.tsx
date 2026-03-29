@@ -57,13 +57,17 @@ export default async function DashboardPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+    <div className="min-h-screen bg-gradient-to-br from-chart-5/20 via-background to-chart-2/20">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="border-b border-primary/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Daily Briefing</h1>
+            <div className="rounded-lg bg-gradient-to-br from-chart-1 to-chart-2 p-2">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
+              Daily Briefing
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/settings">

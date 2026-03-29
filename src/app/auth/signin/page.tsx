@@ -5,14 +5,16 @@ import { Calendar } from "lucide-react";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-chart-5/20 via-background to-chart-2/20">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Calendar className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-chart-1 to-chart-2 shadow-lg">
+            <Calendar className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold">Daily Briefing</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
+            Daily Briefing
+          </CardTitle>
+          <CardDescription className="text-base">
             AI가 요약해주는 하루 일정 브리핑
           </CardDescription>
         </CardHeader>
@@ -23,7 +25,7 @@ export default function SignInPage() {
               await signIn("google", { redirectTo: "/dashboard" });
             }}
           >
-            <Button type="submit" className="w-full" size="lg">
+            <Button type="submit" className="w-full bg-gradient-to-r from-chart-1 to-chart-2 hover:from-chart-1/90 hover:to-chart-2/90" size="lg">
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"

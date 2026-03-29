@@ -112,9 +112,9 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
   }
 
   const getBusyScoreColor = (score: number) => {
-    if (score >= 80) return "text-red-600";
-    if (score >= 50) return "text-orange-600";
-    return "text-green-600";
+    if (score >= 80) return "text-red-600 dark:text-red-400";
+    if (score >= 50) return "text-orange-600 dark:text-orange-400";
+    return "text-emerald-600 dark:text-emerald-400";
   };
 
   const getBusyScoreLabel = (score: number) => {
@@ -197,8 +197,8 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
         )}
 
         {briefing.llmProvider && (
-          <div className="rounded-lg border bg-muted/50 p-3 text-xs">
-            <div className="font-semibold mb-1">LLM 호출 정보</div>
+          <div className="rounded-lg border border-chart-2/30 bg-gradient-to-br from-chart-2/10 to-chart-3/10 p-3 text-xs">
+            <div className="font-semibold mb-1 text-chart-2">LLM 호출 정보</div>
             <div className="space-y-0.5 text-muted-foreground">
               <div>프로바이더: {briefing.llmProvider === "lmstudio" ? "LM Studio (로컬)" : "OpenAI"}</div>
               <div>모델: {briefing.llmModel || "알 수 없음"}</div>

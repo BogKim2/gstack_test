@@ -156,17 +156,17 @@ export function WeekTimeline() {
         {stats && stats.totalEvents > 0 ? (
           <div className="space-y-4">
             {/* 주간 통계 */}
-            <div className="grid grid-cols-3 gap-4 rounded-lg border bg-muted/50 p-4">
+            <div className="grid grid-cols-3 gap-4 rounded-lg border border-chart-1/30 bg-gradient-to-br from-chart-1/10 to-chart-2/10 p-4">
               <div className="text-center">
-                <div className="text-2xl font-bold">{stats.totalEvents}</div>
+                <div className="text-2xl font-bold text-chart-1">{stats.totalEvents}</div>
                 <div className="text-xs text-muted-foreground">총 일정</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">{stats.totalDays}</div>
+                <div className="text-2xl font-bold text-chart-2">{stats.totalDays}</div>
                 <div className="text-xs text-muted-foreground">일정 있는 날</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">{stats.busiestDay.count}</div>
+                <div className="text-2xl font-bold text-chart-3">{stats.busiestDay.count}</div>
                 <div className="text-xs text-muted-foreground">
                   최다 일정 ({getDayLabel(stats.busiestDay.date)})
                 </div>
@@ -178,12 +178,17 @@ export function WeekTimeline() {
               {weekDays.map((dateStr) => {
                 const dayEvents = events[dateStr] || [];
                 const isToday = dateStr === new Date(new Date().getTime() + (9 * 60 * 60 * 1000)).toISOString().split("T")[0];
+                const hasEvents = dayEvents.length > 0;
                 
                 return (
                   <div
                     key={dateStr}
-                    className={`rounded-lg border p-3 ${
-                      isToday ? "border-primary bg-primary/5" : "bg-card"
+                    className={`rounded-lg border p-3 transition-colors ${
+                      isToday 
+                        ? "border-primary bg-primary/10 shadow-sm" 
+                        : hasEvents 
+                        ? "border-chart-1/30 bg-chart-1/5 hover:bg-chart-1/10" 
+                        : "bg-card hover:bg-muted/50"
                     }`}
                   >
                     <div className="mb-2 flex items-center justify-between">
@@ -204,22 +209,33 @@ export function WeekTimeline() {
                     
                     {dayEvents.length > 0 ? (
                       <div className="space-y-1.5">
-                        {dayEvents.map((event) => (
-                          <div
-                            key={event.id}
-                            className="rounded-md border bg-background p-2 text-xs"
-                          >
-                            <div className="font-medium">{event.summary}</div>
-                            <div className="mt-1 flex items-center gap-2 text-muted-foreground">
-                              <span>
-                                {formatTime(event.start)} - {formatTime(event.end)}
-                              </span>
-                              {event.attendees > 0 && (
-                                <span>· {event.attendees}명</span>
-                              )}
+                        {dayEvents.map((event, idx) => {
+                          const colors = [
+                            "border-l-chart-1 bg-chart-1/5",
+                            "border-l-chart-2 bg-chart-2/5",
+                            "border-l-chart-3 bg-chart-3/5",
+                            "border-l-chart-4 bg-chart-4/5",
+                            "border-l-chart-5 bg-chart-5/5",
+                          ];
+                          const colorClass = colors[idx % colors.length];
+                          
+                          return (
+                            <div
+                              key={event.id}
+                              className={`rounded-md border border-l-4 bg-background p-2 text-xs transition-colors hover:shadow-sm ${colorClass}`}
+                            >
+                              <div className="font-medium">{event.summary}</div>
+                              <div className="mt-1 flex items-center gap-2 text-muted-foreground">
+                                <span>
+                                  {formatTime(event.start)} - {formatTime(event.end)}
+                                </span>
+                                {event.attendees > 0 && (
+                                  <span>· {event.attendees}명</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-xs text-muted-foreground">일정 없음</p>

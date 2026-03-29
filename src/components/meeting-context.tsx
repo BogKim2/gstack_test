@@ -34,11 +34,11 @@ export function MeetingContext({ contexts }: MeetingContextProps) {
           open={openItems[email]}
           onOpenChange={() => toggleItem(email)}
         >
-          <Card className="border-l-4 border-l-primary/20">
+          <Card className="border-l-4 border-l-chart-4 bg-chart-4/5">
             <CollapsibleTrigger className="w-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <Mail className="h-4 w-4 text-chart-4" />
                   <CardTitle className="text-sm font-medium">{email}</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">

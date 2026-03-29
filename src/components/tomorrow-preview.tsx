@@ -60,11 +60,11 @@ export function TomorrowPreview() {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card>
+      <Card className="border-chart-5/30 bg-gradient-to-br from-chart-5/10 to-chart-4/10">
         <CollapsibleTrigger className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 text-chart-5" />
               <CardTitle className="text-base">내일 일정 미리보기</CardTitle>
             </div>
             <ChevronDown
@@ -89,7 +89,7 @@ export function TomorrowPreview() {
                 {events.map((event, idx) => (
                   <div
                     key={idx}
-                    className="rounded-lg border bg-card p-3 text-sm"
+                    className="rounded-lg border border-l-4 border-l-chart-5 bg-background p-3 text-sm shadow-sm"
                   >
                     <div className="font-medium">{event.summary}</div>
                     <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
