@@ -7,6 +7,7 @@ import { Calendar, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { BriefingCard } from "@/components/briefing-card";
 import { TestEventsButton } from "@/components/test-events-button";
+import { TomorrowPreview } from "@/components/tomorrow-preview";
 import { db } from "@/db";
 import { briefings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -48,6 +49,9 @@ export default async function DashboardPage() {
         llmProvider: todayBriefing[0].llmProvider || undefined,
         llmModel: todayBriefing[0].llmModel || undefined,
         llmEndpoint: todayBriefing[0].llmEndpoint || undefined,
+        meetingContexts: todayBriefing[0].meetingContexts
+          ? JSON.parse(todayBriefing[0].meetingContexts)
+          : undefined,
       }
     : null;
 
@@ -98,6 +102,7 @@ export default async function DashboardPage() {
 
           <TabsContent value="today" className="space-y-4">
             <BriefingCard initialBriefing={briefingData} />
+            <TomorrowPreview />
           </TabsContent>
 
           <TabsContent value="week" className="space-y-4">

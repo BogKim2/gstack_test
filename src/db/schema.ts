@@ -96,6 +96,7 @@ export const briefings = sqliteTable("briefing", {
   llmProvider: text("llmProvider"), // "openai" | "lmstudio"
   llmModel: text("llmModel"), // 사용된 모델명
   llmEndpoint: text("llmEndpoint"), // LM Studio 엔드포인트
+  meetingContexts: text("meetingContexts"), // JSON: { email: threads[] }
   createdAt: integer("createdAt").notNull(),
 });
 

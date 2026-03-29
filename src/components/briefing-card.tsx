@@ -3,8 +3,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Loader2, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Loader2, CheckCircle2, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { MeetingContext } from "@/components/meeting-context";
+
+interface Delta {
+  eventCountChange: number;
+  busyScoreChange: number;
+}
+
+interface Thread {
+  id: string;
+  snippet: string;
+}
 
 interface Briefing {
   id: string;
@@ -16,6 +28,8 @@ interface Briefing {
   llmProvider?: string;
   llmModel?: string;
   llmEndpoint?: string;
+  delta?: Delta | null;
+  meetingContexts?: Record<string, Thread[]>;
 }
 
 interface BriefingCardProps {
@@ -104,6 +118,18 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
     return "여유로움";
   };
 
+  const getDeltaIcon = (change: number) => {
+    if (change > 0) return <TrendingUp className="h-3 w-3" />;
+    if (change < 0) return <TrendingDown className="h-3 w-3" />;
+    return <Minus className="h-3 w-3" />;
+  };
+
+  const getDeltaVariant = (change: number): "default" | "secondary" | "destructive" | "outline" => {
+    if (change > 0) return "destructive";
+    if (change < 0) return "secondary";
+    return "outline";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -126,6 +152,16 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
             <div className="text-xs text-muted-foreground">
               {getBusyScoreLabel(briefing.busyScore)}
             </div>
+            {briefing.delta && (
+              <div className="mt-2 flex items-center justify-end gap-1">
+                <Badge variant={getDeltaVariant(briefing.delta.busyScoreChange)} className="text-xs">
+                  {getDeltaIcon(briefing.delta.busyScoreChange)}
+                  <span className="ml-1">
+                    {briefing.delta.busyScoreChange > 0 ? '+' : ''}{briefing.delta.busyScoreChange}
+                  </span>
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -149,6 +185,10 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
               ))}
             </ul>
           </div>
+        )}
+
+        {briefing.meetingContexts && Object.keys(briefing.meetingContexts).length > 0 && (
+          <MeetingContext contexts={briefing.meetingContexts} />
         )}
 
         {briefing.llmProvider && (
