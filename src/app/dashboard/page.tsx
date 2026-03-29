@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { BriefingCard } from "@/components/briefing-card";
+import { TestEventsButton } from "@/components/test-events-button";
 import { db } from "@/db";
 import { briefings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -75,9 +76,12 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">안녕하세요, {session.user.name}님</h2>
-          <p className="text-muted-foreground">오늘의 일정을 확인하세요</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">안녕하세요, {session.user.name}님</h2>
+            <p className="text-muted-foreground">오늘의 일정을 확인하세요</p>
+          </div>
+          <TestEventsButton />
         </div>
 
         <Tabs defaultValue="today" className="space-y-4">
