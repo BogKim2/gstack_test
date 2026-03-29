@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,11 @@ interface BriefingCardProps {
 export function BriefingCard({ initialBriefing }: BriefingCardProps) {
   const [briefing, setBriefing] = useState<Briefing | null>(initialBriefing);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const generateBriefing = async () => {
     setLoading(true);
@@ -200,7 +205,9 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
               {briefing.llmEndpoint && (
                 <div>엔드포인트: {briefing.llmEndpoint}</div>
               )}
-              <div>생성 시각: {new Date(briefing.createdAt).toLocaleString("ko-KR")}</div>
+              <div>
+                생성 시각: {mounted ? new Date(briefing.createdAt).toLocaleString("ko-KR") : "로딩 중..."}
+              </div>
             </div>
           </div>
         )}
