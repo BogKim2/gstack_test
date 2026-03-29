@@ -97,6 +97,7 @@ export const briefings = sqliteTable("briefing", {
   llmModel: text("llmModel"), // 사용된 모델명
   llmEndpoint: text("llmEndpoint"), // LM Studio 엔드포인트
   meetingContexts: text("meetingContexts"), // JSON: { email: threads[] }
+  warnings: text("warnings"), // JSON string[] — Gmail 부분 실패 등
   createdAt: integer("createdAt").notNull(),
 });
 

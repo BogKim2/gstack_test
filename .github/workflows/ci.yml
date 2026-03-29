@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        env:
+          NEXTAUTH_SECRET: ci-placeholder-secret-at-least-32-chars-long
+          NEXTAUTH_URL: http://localhost:3000
+          GOOGLE_CLIENT_ID: ci
+          GOOGLE_CLIENT_SECRET: ci
+          DATABASE_URL: file:./data/ci.sqlite
+          SECRET_KEY: ci-test-secret-key-32-bytes-long!!
+        run: npm run build

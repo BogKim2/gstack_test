@@ -7,12 +7,13 @@ import {
   getSeoulYmd,
   seoulDayRangeIso,
 } from "@/lib/korea-time";
+import { requireUserId } from "@/lib/require-auth";
 
 export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -39,7 +40,7 @@ export async function GET() {
 
     const rawEvents = await googleClient.getCalendarEvents(timeMin, timeMax);
 
-    const events = (rawEvents || []).filter((ev: { start?: { dateTime?: string; date?: string } }) => {
+    const events = (rawEvents || []).filter((ev: any) => {
       const ymd = getEventStartSeoulYmd(ev);
       return ymd === tomorrowSeoul;
     });

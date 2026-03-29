@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown, Calendar, Users, Loader2 } from "lucide-react";
@@ -20,9 +20,9 @@ export function TomorrowPreview() {
   const [loaded, setLoaded] = useState(false);
   const [dateLabel, setDateLabel] = useState<string | null>(null);
 
-  const loadTomorrowEvents = async () => {
+  const loadTomorrowEvents = useCallback(async () => {
     if (loaded) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch("/api/briefing/tomorrow");
@@ -39,13 +39,13 @@ export function TomorrowPreview() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loaded]);
 
   useEffect(() => {
     if (isOpen && !loaded) {
-      loadTomorrowEvents();
+      void loadTomorrowEvents();
     }
-  }, [isOpen, loaded]);
+  }, [isOpen, loaded, loadTomorrowEvents]);
 
   const formatTime = (dateTimeStr: string) => {
     try {

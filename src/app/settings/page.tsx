@@ -19,7 +19,9 @@ export default async function SettingsPage() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center px-4">
-          <Link href="/dashboard">
+          <Link
+            href={session.googleLinked ? "/dashboard" : "/settings/connect-google"}
+          >
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -30,6 +32,22 @@ export default async function SettingsPage() {
 
       {/* Main Content */}
       <main className="container mx-auto max-w-2xl px-4 py-8">
+        {!session.googleLinked && (
+          <Card className="mb-6 border-amber-500/40 bg-amber-500/5">
+            <CardHeader>
+              <CardTitle>Google 연동</CardTitle>
+              <CardDescription>
+                캘린더·Gmail 브리핑을 쓰려면 Google 계정을 한 번 연결해야 합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href="/settings/connect-google">Google 연결하기</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>LLM 프로바이더 설정</CardTitle>
@@ -53,7 +71,9 @@ export default async function SettingsPage() {
             </div>
             <div>
               <Label>이메일</Label>
-              <p className="text-sm text-muted-foreground">{session.user.email}</p>
+              <p className="text-sm text-muted-foreground">
+                {session.user.email ?? "— (카카오/네이버에서 동의하지 않은 경우 비어 있을 수 있음)"}
+              </p>
             </div>
           </CardContent>
         </Card>

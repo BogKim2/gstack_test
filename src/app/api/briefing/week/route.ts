@@ -1,13 +1,18 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { GoogleAPIClient } from "@/lib/google-api";
-import { getEventStartSeoulYmd, getSeoulWeekRange, getSeoulYmd } from "@/lib/korea-time";
+import {
+  getEventStartSeoulYmd,
+  getSeoulRolling7DayRange,
+  getSeoulYmd,
+} from "@/lib/korea-time";
+import { requireUserId } from "@/lib/require-auth";
 
 export async function GET(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,27 +33,29 @@ export async function GET(request: Request) {
     const weekOffset = parseInt(searchParams.get("weekOffset") || "0", 10) || 0;
 
     const todaySeoul = getSeoulYmd();
-    const { mondayYmd, sundayYmd, nextMondayYmd, timeMin, timeMax } =
-      getSeoulWeekRange(todaySeoul, weekOffset);
+    const { startYmd, endYmd, timeMin, timeMax } = getSeoulRolling7DayRange(
+      todaySeoul,
+      weekOffset
+    );
 
     console.log(
-      `[Week] Seoul week ${mondayYmd}..${sundayYmd} (nextMon ${nextMondayYmd}) ${timeMin} .. ${timeMax}`
+      `[Week] Rolling 7d ${startYmd}..${endYmd} ${timeMin} .. ${timeMax}`
     );
 
     const rawEvents = await googleClient.getCalendarEvents(timeMin, timeMax);
 
-    const inWeek = (rawEvents || []).filter((event: { start?: { dateTime?: string; date?: string } }) => {
+    const inWeek = (rawEvents || []).filter((event: any) => {
       const ymd = getEventStartSeoulYmd(event);
       if (!ymd) return false;
-      return ymd >= mondayYmd && ymd < nextMondayYmd;
+      return ymd >= startYmd && ymd <= endYmd;
     });
 
     if (inWeek.length === 0) {
       return NextResponse.json({
-        message: "이번 주 일정이 없습니다",
+        message: "이번 7일간 일정이 없습니다",
         events: {},
-        weekStart: mondayYmd,
-        weekEnd: sundayYmd,
+        weekStart: startYmd,
+        weekEnd: endYmd,
         stats: {
           totalEvents: 0,
           totalDays: 0,
@@ -91,8 +98,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       events: eventsByDay,
-      weekStart: mondayYmd,
-      weekEnd: sundayYmd,
+      weekStart: startYmd,
+      weekEnd: endYmd,
       stats,
     });
   } catch (error) {

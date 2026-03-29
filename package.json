@@ -1,12 +1,13 @@
 {
   "name": "daily-briefing",
-  "version": "0.1.0.0",
+  "version": "0.4.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "jest"
   },
   "dependencies": {

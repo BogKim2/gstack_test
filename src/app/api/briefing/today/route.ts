@@ -3,17 +3,18 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { briefings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getSeoulYmd } from "@/lib/korea-time";
+import { requireUserId } from "@/lib/require-auth";
 
 export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const today = new Date();
-    const dateStr = today.toISOString().split("T")[0];
+    const dateStr = getSeoulYmd();
 
     const result = await db
       .select()
