@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CircleHelp } from "lucide-react";
 import Link from "next/link";
 import { SettingsForm } from "@/components/settings-form";
 
@@ -26,7 +26,12 @@ export default async function SettingsPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="ml-4 text-xl font-bold">설정</h1>
+          <h1 className="ml-4 flex-1 text-xl font-bold">설정</h1>
+          <Link href="/help/summary">
+            <Button variant="ghost" size="icon" aria-label="도움말">
+              <CircleHelp className="h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </header>
 

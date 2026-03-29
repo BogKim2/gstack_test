@@ -2,6 +2,8 @@
 
 AI-powered daily calendar briefing with privacy-first design.
 
+로그인 후 앱 내 도움말(메뉴·검색·파일별 라인 수): **`/help/summary`** — 저장소 개발자용 개요는 **[docs/HELP.md](docs/HELP.md)**
+
 ## Features
 
 - Google Calendar and Gmail for briefings (OAuth refresh tokens encrypted at rest)

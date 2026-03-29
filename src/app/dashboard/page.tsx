@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Settings, LogOut } from "lucide-react";
+import { Calendar, CircleHelp, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { BriefingCard } from "@/components/briefing-card";
 import { TestEventsButton } from "@/components/test-events-button";
@@ -75,6 +75,11 @@ export default async function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/help/summary">
+              <Button variant="ghost" size="icon" aria-label="도움말">
+                <CircleHelp className="h-5 w-5" />
+              </Button>
+            </Link>
             <Link href="/settings">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
