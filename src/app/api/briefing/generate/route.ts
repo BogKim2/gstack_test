@@ -87,6 +87,7 @@ export async function POST() {
 
     // 데이터베이스에 저장
     const dateStr = today.toISOString().split("T")[0];
+    const now = Date.now();
     
     await db.insert(briefings).values({
       userId: session.user.email,
@@ -94,6 +95,7 @@ export async function POST() {
       summary,
       actionItems: JSON.stringify(actionItems),
       busyScore,
+      createdAt: now,
     });
 
     return NextResponse.json({

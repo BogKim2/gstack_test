@@ -58,6 +58,8 @@ export async function POST(request: Request) {
       .where(eq(userSettings.userId, session.user.email))
       .limit(1);
 
+    const now = Date.now();
+
     if (existing.length === 0) {
       // 새로 생성
       await db.insert(userSettings).values({
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
         lmStudioEndpoint,
         lmStudioModel,
         promptPreset,
-        updatedAt: Date.now(),
+        updatedAt: now,
       });
     } else {
       // 업데이트
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
           lmStudioEndpoint,
           lmStudioModel,
           promptPreset,
-          updatedAt: Date.now(),
+          updatedAt: now,
         })
         .where(eq(userSettings.userId, session.user.email));
     }

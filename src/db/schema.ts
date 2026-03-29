@@ -93,9 +93,7 @@ export const briefings = sqliteTable("briefing", {
   summary: text("summary").notNull(),
   actionItems: text("actionItems"), // JSON array
   busyScore: integer("busyScore"), // 0-100
-  createdAt: integer("createdAt", { mode: "timestamp_ms" })
-    .notNull()
-    .$defaultFn(() => Date.now()),
+  createdAt: integer("createdAt").notNull(),
 });
 
 export const userSettings = sqliteTable("userSettings", {
@@ -106,7 +104,5 @@ export const userSettings = sqliteTable("userSettings", {
   lmStudioEndpoint: text("lmStudioEndpoint"),
   lmStudioModel: text("lmStudioModel"),
   promptPreset: text("promptPreset").default("default"),
-  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
-    .notNull()
-    .$defaultFn(() => Date.now()),
+  updatedAt: integer("updatedAt").notNull(),
 });
