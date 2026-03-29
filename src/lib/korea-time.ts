@@ -36,3 +36,57 @@ export function seoulDayRangeIso(ymd: string): { timeMin: string; timeMax: strin
     timeMax: `${next}T00:00:00+09:00`,
   };
 }
+
+/** 서울 달력 요일 — 0=일 … 6=토 (JS getDay와 동일) */
+export function getSeoulWeekdaySun0(ymd: string): number {
+  const d = new Date(`${ymd}T12:00:00+09:00`);
+  const short = d.toLocaleDateString("en-US", {
+    timeZone: SEOUL,
+    weekday: "short",
+  });
+  const map: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+  return map[short] ?? 0;
+}
+
+/**
+ * 월요일 시작 주간 — anchorYmd가 속한 주의 월요일(Seoul), weekOffset만큼 이동
+ */
+export function getSeoulMondayOfWeek(
+  anchorYmd: string,
+  weekOffset: number = 0
+): string {
+  const sun0 = getSeoulWeekdaySun0(anchorYmd);
+  const daysFromMonday = sun0 === 0 ? 6 : sun0 - 1;
+  return addCalendarDaysYmd(anchorYmd, -daysFromMonday + weekOffset * 7);
+}
+
+/** 해당 주 월~일 (월요일 YMD, 일요일 YMD) + Calendar API 구간 */
+export function getSeoulWeekRange(
+  anchorYmd: string,
+  weekOffset: number = 0
+): {
+  mondayYmd: string;
+  sundayYmd: string;
+  nextMondayYmd: string;
+  timeMin: string;
+  timeMax: string;
+} {
+  const mondayYmd = getSeoulMondayOfWeek(anchorYmd, weekOffset);
+  const sundayYmd = addCalendarDaysYmd(mondayYmd, 6);
+  const nextMondayYmd = addCalendarDaysYmd(mondayYmd, 7);
+  return {
+    mondayYmd,
+    sundayYmd,
+    nextMondayYmd,
+    timeMin: `${mondayYmd}T00:00:00+09:00`,
+    timeMax: `${nextMondayYmd}T00:00:00+09:00`,
+  };
+}

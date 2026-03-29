@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2, Calendar } from "lucide-react";
+import { addCalendarDaysYmd, getSeoulYmd } from "@/lib/korea-time";
 
 interface WeekEvent {
   id: string;
@@ -78,17 +79,10 @@ export function WeekTimeline() {
 
   const getWeekDays = () => {
     if (!weekStart) return [];
-    
-    const days = [];
-    const start = new Date(weekStart + "T00:00:00+09:00");
-    
+    const days: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const day = new Date(start);
-      day.setDate(day.getDate() + i);
-      const dateStr = day.toISOString().split("T")[0];
-      days.push(dateStr);
+      days.push(addCalendarDaysYmd(weekStart, i));
     }
-    
     return days;
   };
 
@@ -177,7 +171,7 @@ export function WeekTimeline() {
             <div className="space-y-2">
               {weekDays.map((dateStr) => {
                 const dayEvents = events[dateStr] || [];
-                const isToday = dateStr === new Date(new Date().getTime() + (9 * 60 * 60 * 1000)).toISOString().split("T")[0];
+                const isToday = dateStr === getSeoulYmd();
                 const hasEvents = dayEvents.length > 0;
                 
                 return (

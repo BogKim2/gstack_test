@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    volumes:
+      - briefing-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  briefing-data:

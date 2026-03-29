@@ -38,50 +38,41 @@ If you want to use local LLM instead of OpenAI:
 
 ## Tech Stack
 
-- Next.js 15 (App Router)
+- Next.js 14 (App Router)
 - Auth.js v5 (Google OAuth)
 - SQLite + Drizzle ORM
-- shadcn/ui (Neutral theme)
+- shadcn/ui (Blue theme)
 - Tailwind CSS
 - OpenAI API / LM Studio
+
+## Docker (self-host)
+
+1. `.env`를 프로젝트 루트에 두고 (`DATABASE_URL=file:./data/db.sqlite` 권장)
+2. 실행:
+
+```bash
+docker compose up --build -d
+```
+
+3. `http://localhost:3000` — SQLite는 `briefing-data` 볼륨에 저장됩니다.
+
+## Tests
+
+```bash
+npm test
+```
+
+날짜·주간 범위는 `Asia/Seoul` 기준으로 `src/lib/korea-time`에서 검증합니다.
 
 ## License
 
 MIT
 
+### 안정 조합 (로컬 개발)
 
-목적을 describe 하고 서 다음을 실행
-
-/office-hours
-
-/plan-ceo-review
-        [reads the design doc, challenges scope, runs 10-section review]
-
-/plan-eng-review
-        [ASCII diagrams for data flow, state machines, error paths]
-        [test matrix, failure modes, security concerns]
-/plan_design_review
-
-
-/ship
-Approve plan. Exit plan mode.
-        [writes 2,400 lines across 11 files. ~8 minutes.]
-
-/review
-        [AUTO-FIXED] 2 issues. [ASK] Race condition → you approve fix.
-
-/qa https://staging.myapp.com
-        [opens real browser, clicks through flows, finds and fixes a bug]
-
-/ship
-        Tests: 42 → 51 (+9 new). PR: github.com/you/app/pull/42
-
-
-
-📊 안정 조합 (중요🔥)
-패키지	버전
-Node	20
-Next	14
-React	18
-TypeScript	5
-
+| 패키지 | 버전 |
+|--------|------|
+| Node | 20 |
+| Next | 14 |
+| React | 18 |
+| TypeScript | 5 |
