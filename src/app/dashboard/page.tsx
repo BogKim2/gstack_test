@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
+import { BriefingCard } from "@/components/briefing-card";
+import { db } from "@/db";
+import { briefings } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -12,6 +16,33 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/auth/signin");
   }
+
+  // 오늘 브리핑 가져오기
+  const today = new Date().toISOString().split("T")[0];
+  const todayBriefing = await db
+    .select()
+    .from(briefings)
+    .where(
+      and(
+        eq(briefings.userId, session.user.email!),
+        eq(briefings.date, today)
+      )
+    )
+    .orderBy(desc(briefings.createdAt))
+    .limit(1);
+
+  const briefingData = todayBriefing[0]
+    ? {
+        id: todayBriefing[0].id,
+        date: todayBriefing[0].date,
+        summary: todayBriefing[0].summary,
+        actionItems: todayBriefing[0].actionItems
+          ? JSON.parse(todayBriefing[0].actionItems)
+          : [],
+        busyScore: todayBriefing[0].busyScore || 0,
+        createdAt: todayBriefing[0].createdAt || Date.now(),
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
@@ -56,30 +87,7 @@ export default async function DashboardPage() {
           </TabsList>
 
           <TabsContent value="today" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>오늘의 브리핑</CardTitle>
-                <CardDescription>
-                  {new Date().toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    weekday: "long",
-                  })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                    <p className="mb-4 text-muted-foreground">
-                      아직 생성된 브리핑이 없습니다
-                    </p>
-                    <Button>브리핑 생성</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BriefingCard initialBriefing={briefingData} />
           </TabsContent>
 
           <TabsContent value="week" className="space-y-4">
