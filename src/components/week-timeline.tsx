@@ -31,23 +31,36 @@ export function WeekTimeline() {
   const [weekStart, setWeekStart] = useState("");
   const [weekEnd, setWeekEnd] = useState("");
   const [loading, setLoading] = useState(true);
+  const [weekSummary, setWeekSummary] = useState("");
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const loadWeekEvents = async (offset: number) => {
     setLoading(true);
+    setSummaryLoading(true);
+    setWeekSummary("");
     try {
-      const response = await fetch(`/api/briefing/week?weekOffset=${offset}`);
-      const data = await response.json();
+      const [weekRes, sumRes] = await Promise.all([
+        fetch(`/api/briefing/week?weekOffset=${offset}`),
+        fetch(`/api/briefing/week-summary?weekOffset=${offset}`),
+      ]);
 
-      if (response.ok) {
+      const data = await weekRes.json();
+      if (weekRes.ok) {
         setEvents(data.events || {});
         setStats(data.stats || null);
         setWeekStart(data.weekStart || "");
         setWeekEnd(data.weekEnd || "");
       }
+
+      const sumData = await sumRes.json();
+      if (sumRes.ok) {
+        setWeekSummary(sumData.summary || "");
+      }
     } catch (error) {
       console.error("Failed to load week events:", error);
     } finally {
       setLoading(false);
+      setSummaryLoading(false);
     }
   };
 
@@ -107,11 +120,14 @@ export function WeekTimeline() {
             <CardDescription>
               {weekStart && weekEnd && (
                 <>
+                  <span className="text-muted-foreground">
+                    오늘부터 연속 7일 ·{" "}
+                  </span>
                   {new Date(weekStart + "T00:00:00+09:00").toLocaleDateString("ko-KR", {
                     month: "long",
                     day: "numeric",
                   })}{" "}
-                  -{" "}
+                  —{" "}
                   {new Date(weekEnd + "T00:00:00+09:00").toLocaleDateString("ko-KR", {
                     month: "long",
                     day: "numeric",
@@ -134,7 +150,7 @@ export function WeekTimeline() {
               onClick={() => setWeekOffset(0)}
               disabled={weekOffset === 0}
             >
-              이번 주
+              오늘부터
             </Button>
             <Button
               variant="outline"
@@ -147,8 +163,24 @@ export function WeekTimeline() {
         </div>
       </CardHeader>
       <CardContent>
-        {stats && stats.totalEvents > 0 ? (
+        {stats && weekStart ? (
           <div className="space-y-4">
+            {(summaryLoading || weekSummary.trim().length > 0) && (
+              <div className="rounded-lg border border-chart-3/30 bg-chart-3/5 p-4">
+                <div className="mb-2 text-sm font-semibold text-chart-3">AI 주간 요약</div>
+                {summaryLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    요약 생성 중...
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                    {weekSummary}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* 주간 통계 */}
             <div className="grid grid-cols-3 gap-4 rounded-lg border border-chart-1/30 bg-gradient-to-br from-chart-1/10 to-chart-2/10 p-4">
               <div className="text-center">
@@ -162,7 +194,10 @@ export function WeekTimeline() {
               <div className="text-center">
                 <div className="text-2xl font-bold text-chart-3">{stats.busiestDay.count}</div>
                 <div className="text-xs text-muted-foreground">
-                  최다 일정 ({getDayLabel(stats.busiestDay.date)})
+                  최다 일정
+                  {stats.busiestDay.date
+                    ? ` (${getDayLabel(stats.busiestDay.date)})`
+                    : ""}
                 </div>
               </div>
             </div>
@@ -242,7 +277,7 @@ export function WeekTimeline() {
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
             <Calendar className="mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">이번 주 일정이 없습니다</p>
+            <p className="text-muted-foreground">일정을 불러오지 못했습니다</p>
           </div>
         )}
       </CardContent>

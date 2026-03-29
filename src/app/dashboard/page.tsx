@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Settings, LogOut } from "lucide-react";
+import { Calendar, CircleHelp, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { BriefingCard } from "@/components/briefing-card";
 import { TestEventsButton } from "@/components/test-events-button";
@@ -12,6 +12,7 @@ import { WeekTimeline } from "@/components/week-timeline";
 import { db } from "@/db";
 import { briefings } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { getSeoulYmd } from "@/lib/korea-time";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -20,10 +21,11 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  // 오늘 브리핑 가져오기 (한국 시간 기준)
-  const now = new Date();
-  const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-  const today = koreaTime.toISOString().split("T")[0];
+  if (!session.googleLinked) {
+    redirect("/settings/connect-google");
+  }
+
+  const today = getSeoulYmd();
   
   const todayBriefing = await db
     .select()
@@ -53,6 +55,9 @@ export default async function DashboardPage() {
         meetingContexts: todayBriefing[0].meetingContexts
           ? JSON.parse(todayBriefing[0].meetingContexts)
           : undefined,
+        warnings: todayBriefing[0].warnings
+          ? JSON.parse(todayBriefing[0].warnings)
+          : undefined,
       }
     : null;
 
@@ -70,6 +75,11 @@ export default async function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/help/summary">
+              <Button variant="ghost" size="icon" aria-label="도움말">
+                <CircleHelp className="h-5 w-5" />
+              </Button>
+            </Link>
             <Link href="/settings">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />

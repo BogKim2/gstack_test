@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Loader2, CheckCircle2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Calendar, Loader2, CheckCircle2, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { MeetingContext } from "@/components/meeting-context";
+import { getSeoulYmd } from "@/lib/korea-time";
 
 interface Delta {
   eventCountChange: number;
@@ -19,7 +21,7 @@ interface Thread {
 }
 
 interface Briefing {
-  id: string;
+  id?: string;
   date: string;
   summary: string;
   actionItems: string[];
@@ -30,16 +32,109 @@ interface Briefing {
   llmEndpoint?: string;
   delta?: Delta | null;
   meetingContexts?: Record<string, Thread[]>;
+  warnings?: string[];
 }
 
 interface BriefingCardProps {
   initialBriefing: Briefing | null;
 }
 
+function handleNdjsonObject(
+  obj: Record<string, unknown>,
+  onChunk: (text: string) => void
+):
+  | { kind: "done"; message?: string; briefing: Briefing | null }
+  | { kind: "error"; error: string }
+  | { kind: "chunk" }
+  | null {
+  if (obj.type === "chunk" && typeof obj.text === "string") {
+    onChunk(obj.text);
+    return { kind: "chunk" };
+  }
+  if (obj.type === "done") {
+    return {
+      kind: "done",
+      message: typeof obj.message === "string" ? obj.message : undefined,
+      briefing: (obj.briefing as Briefing) ?? null,
+    };
+  }
+  if (obj.type === "error") {
+    return {
+      kind: "error",
+      error: typeof obj.message === "string" ? obj.message : "오류",
+    };
+  }
+  return null;
+}
+
+async function parseNdjsonStream(
+  response: Response,
+  onChunk: (text: string) => void
+): Promise<{
+  message?: string;
+  briefing: Briefing | null;
+  error?: string;
+}> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return { briefing: null, error: "스트림을 읽을 수 없습니다" };
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      let obj: Record<string, unknown>;
+      try {
+        obj = JSON.parse(trimmed) as Record<string, unknown>;
+      } catch {
+        continue;
+      }
+
+      const r = handleNdjsonObject(obj, onChunk);
+      if (r?.kind === "done") {
+        return { message: r.message, briefing: r.briefing };
+      }
+      if (r?.kind === "error") {
+        return { briefing: null, error: r.error };
+      }
+    }
+  }
+
+  const tail = buffer.trim();
+  if (tail) {
+    try {
+      const obj = JSON.parse(tail) as Record<string, unknown>;
+      const r = handleNdjsonObject(obj, onChunk);
+      if (r?.kind === "done") {
+        return { message: r.message, briefing: r.briefing };
+      }
+      if (r?.kind === "error") {
+        return { briefing: null, error: r.error };
+      }
+    } catch {
+      // 스트림 끝에 불완전한 JSON이 남은 경우
+    }
+  }
+
+  return { briefing: null, error: "응답이 완료되지 않았습니다" };
+}
+
 export function BriefingCard({ initialBriefing }: BriefingCardProps) {
   const [briefing, setBriefing] = useState<Briefing | null>(initialBriefing);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [streamPreview, setStreamPreview] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -47,22 +142,49 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
 
   const generateBriefing = async () => {
     setLoading(true);
+    setStreamPreview("");
     try {
       const response = await fetch("/api/briefing/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stream: true }),
       });
 
-      const data = await response.json();
+      const ct = response.headers.get("content-type") || "";
 
-      if (!response.ok) {
-        throw new Error(data.error || "브리핑 생성 실패");
+      if (ct.includes("application/json")) {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(typeof data.error === "string" ? data.error : "브리핑 생성 실패");
+        }
+        if (data.briefing) {
+          setBriefing(data.briefing);
+          toast.success("브리핑이 생성되었습니다!");
+        } else {
+          toast.info(data.message || "오늘 일정이 없습니다");
+        }
+        return;
       }
 
-      if (data.briefing) {
-        setBriefing(data.briefing);
-        toast.success("브리핑이 생성되었습니다!");
+      if (!response.ok) {
+        throw new Error("브리핑 생성 실패");
+      }
+
+      const result = await parseNdjsonStream(response, (text) => {
+        setStreamPreview((s) => s + text);
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      if (result.briefing) {
+        setBriefing(result.briefing);
+        setStreamPreview("");
+        toast.success(result.message || "브리핑이 생성되었습니다!");
       } else {
-        toast.info(data.message || "오늘 일정이 없습니다");
+        toast.info("오늘 일정이 없습니다");
+        setStreamPreview("");
       }
     } catch (error) {
       console.error("Briefing generation error:", error);
@@ -72,28 +194,41 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
     }
   };
 
+  const emptyDateLabel = () => {
+    const ymd = getSeoulYmd();
+    return new Date(`${ymd}T12:00:00+09:00`).toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+    });
+  };
+
   if (!briefing) {
-    const koreaTime = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
     return (
       <Card>
         <CardHeader>
           <CardTitle>오늘의 브리핑</CardTitle>
-          <CardDescription>
-            {koreaTime.toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "long",
-            })}
-          </CardDescription>
+          <CardDescription>{emptyDateLabel()}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12">
-            <div className="text-center">
+            <div className="text-center max-w-lg w-full">
               <Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
               <p className="mb-4 text-muted-foreground">
                 아직 생성된 브리핑이 없습니다
               </p>
+              {(loading || streamPreview) && (
+                <div className="mb-4 rounded-md border bg-muted/40 p-4 text-left text-sm whitespace-pre-wrap min-h-[4rem]">
+                  {loading && !streamPreview && (
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      생성 중...
+                    </span>
+                  )}
+                  {streamPreview}
+                </div>
+              )}
               <Button onClick={generateBriefing} disabled={loading}>
                 {loading ? (
                   <>
@@ -162,7 +297,8 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
                 <Badge variant={getDeltaVariant(briefing.delta.busyScoreChange)} className="text-xs">
                   {getDeltaIcon(briefing.delta.busyScoreChange)}
                   <span className="ml-1">
-                    {briefing.delta.busyScoreChange > 0 ? '+' : ''}{briefing.delta.busyScoreChange}
+                    {briefing.delta.busyScoreChange > 0 ? "+" : ""}
+                    {briefing.delta.busyScoreChange}
                   </span>
                 </Badge>
               </div>
@@ -171,6 +307,20 @@ export function BriefingCard({ initialBriefing }: BriefingCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {briefing.warnings && briefing.warnings.length > 0 && (
+          <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTitle>일부 외부 데이터를 가져오지 못했습니다</AlertTitle>
+            <AlertDescription>
+              <ul className="list-disc pl-4 text-sm mt-1 space-y-0.5">
+                {briefing.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div>
           <h3 className="mb-2 font-semibold">요약</h3>
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">

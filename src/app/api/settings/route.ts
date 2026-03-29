@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { userSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/require-auth";
 
 export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
+import { requireUserId } from "@/lib/require-auth";
 
 const TEST_EVENTS = [
   {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!requireUserId(session)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

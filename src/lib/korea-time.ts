@@ -90,3 +90,27 @@ export function getSeoulWeekRange(
     timeMax: `${nextMondayYmd}T00:00:00+09:00`,
   };
 }
+
+/**
+ * 오늘(anchor)부터 연속 7일 — 타임라인용 롤링 윈도우.
+ * `weekOffset`마다 시작일이 ±7일 이동 (이전/다음 7일 구간).
+ */
+export function getSeoulRolling7DayRange(
+  anchorYmd: string,
+  weekOffset: number = 0
+): {
+  startYmd: string;
+  endYmd: string;
+  timeMin: string;
+  timeMax: string;
+} {
+  const startYmd = addCalendarDaysYmd(anchorYmd, weekOffset * 7);
+  const endYmd = addCalendarDaysYmd(startYmd, 6);
+  const dayAfterEnd = addCalendarDaysYmd(startYmd, 7);
+  return {
+    startYmd,
+    endYmd,
+    timeMin: `${startYmd}T00:00:00+09:00`,
+    timeMax: `${dayAfterEnd}T00:00:00+09:00`,
+  };
+}

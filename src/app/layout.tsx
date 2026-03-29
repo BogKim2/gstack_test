@@ -6,6 +6,11 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: "Daily Briefing",
   description: "AI-powered daily calendar briefing",
+  keywords: ["브리핑", "캘린더", "Google Calendar", "Gmail", "LLM"],
+  openGraph: {
+    title: "Daily Briefing",
+    description: "한국어 일일 캘린더 브리핑",
+  },
 };
 
 export default function RootLayout({

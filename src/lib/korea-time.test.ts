@@ -1,6 +1,7 @@
 import {
   addCalendarDaysYmd,
   getSeoulMondayOfWeek,
+  getSeoulRolling7DayRange,
   getSeoulWeekRange,
   getSeoulWeekdaySun0,
   seoulDayRangeIso,
@@ -31,5 +32,18 @@ describe("korea-time", () => {
     const { timeMin, timeMax } = seoulDayRangeIso("2026-03-30");
     expect(timeMin).toBe("2026-03-30T00:00:00+09:00");
     expect(timeMax).toBe("2026-03-31T00:00:00+09:00");
+  });
+
+  it("getSeoulRolling7DayRange: 오늘부터 7일, offset 0", () => {
+    const r = getSeoulRolling7DayRange("2026-03-29", 0);
+    expect(r.startYmd).toBe("2026-03-29");
+    expect(r.endYmd).toBe("2026-04-04");
+    expect(r.timeMax).toBe("2026-04-05T00:00:00+09:00");
+  });
+
+  it("getSeoulRolling7DayRange: offset -1은 이전 7일", () => {
+    const r = getSeoulRolling7DayRange("2026-03-29", -1);
+    expect(r.startYmd).toBe("2026-03-22");
+    expect(r.endYmd).toBe("2026-03-28");
   });
 });
