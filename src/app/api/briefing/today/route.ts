@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,7 +20,7 @@ export async function GET() {
       .from(briefings)
       .where(
         and(
-          eq(briefings.userId, session.user.email),
+          eq(briefings.userId, session.user.id),
           eq(briefings.date, dateStr)
         )
       )

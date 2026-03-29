@@ -10,7 +10,7 @@ export async function POST() {
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -18,7 +18,7 @@ export async function POST() {
     const settings = await db
       .select()
       .from(userSettings)
-      .where(eq(userSettings.userId, session.user.email))
+      .where(eq(userSettings.userId, session.user.id))
       .limit(1);
 
     const userConfig = settings[0] || {
@@ -90,7 +90,7 @@ export async function POST() {
     const now = Date.now();
     
     await db.insert(briefings).values({
-      userId: session.user.email,
+      userId: session.user.id,
       date: dateStr,
       summary,
       actionItems: JSON.stringify(actionItems),

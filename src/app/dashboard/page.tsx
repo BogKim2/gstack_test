@@ -25,7 +25,7 @@ export default async function DashboardPage() {
     .from(briefings)
     .where(
       and(
-        eq(briefings.userId, session.user.email!),
+        eq(briefings.userId, session.user.id!),
         eq(briefings.date, today)
       )
     )
